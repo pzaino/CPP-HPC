@@ -33,6 +33,7 @@
 
 # SAST/DAST files and reports
 sonar-project.properties
+.scannerwork/
 
 # Build artifacts
 build/
