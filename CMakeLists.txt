@@ -7,6 +7,9 @@ project(CPP-HPC)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+# Option to enable recursive form
+option(USE_RECURSIVE_FORM "Enable recursive form of algorithms" OFF)
+
 # Ensure the correct compiler is used for macOS with OpenMP
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     if (CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
@@ -58,6 +61,12 @@ function(create_targets_from_directory dir)
             endif()
         else()
             message(FATAL_ERROR "Unsupported platform: ${CMAKE_SYSTEM_NAME}")
+        endif()
+
+        # Add the definition if USE_RECURSIVE_FORM is ON
+        if(USE_RECURSIVE_FORM)
+            target_compile_definitions(${target_name}_shared PRIVATE ZFP_RECURSIVE_FORM)
+            target_compile_definitions(${target_name}_static PRIVATE ZFP_RECURSIVE_FORM)
         endif()
     endforeach()
 endfunction()
