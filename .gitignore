@@ -30,3 +30,18 @@
 *.exe
 *.out
 *.app
+
+# SAST/DAST files and reports
+sonar-project.properties
+
+# Build artifacts
+build/
+dist/
+bin/
+
+# IDEs
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.suo
