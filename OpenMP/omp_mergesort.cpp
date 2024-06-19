@@ -1,10 +1,22 @@
+// Copyright 2023 Paolo Fabio Zaino
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-#include <functional>
 #include <vector>
 #include <omp.h>
+#include <functional>
 
 #include "omp_mergesort.hpp"
-
 
 template <typename T>
 void merge(std::vector<T>& arr, int left, int mid, int right, 
@@ -25,9 +37,7 @@ void merge(std::vector<T>& arr, int left, int mid, int right,
         R[j] = arr[mid + 1 + j];
     }
 
-    int i = 0;
-    int j = 0;
-    int k = left;
+    int i = 0, j = 0, k = left;
 
     while (i < n1 && j < n2) 
     {
@@ -66,8 +76,6 @@ template void merge<double>(std::vector<double>&, int, int, int, std::function<b
 template void merge<long>(std::vector<long>&, int, int, int, std::function<bool(long, long)>);
 
 #ifdef ZFP_RECURSIVE_FORM
-// Recursive form of quicksort with OpenMP and custom
-// evaluation function
 template <typename T>
 void mergeSort(std::vector<T>& arr, int left, int right, 
                std::function<bool(T, T)> eval) 
@@ -92,48 +100,39 @@ void mergeSort(std::vector<T>& arr, int left, int right,
     }
 }
 #else
-// Iterative form of quicksort with OpenMP and custom
-// evaluation function
 template <typename T>
 void mergeSort(std::vector<T>& arr, int left, int right, 
                std::function<bool(T, T)> eval) 
 {
-    std::vector<int> stack(right - left + 1);
-    int top = -1;
+    if (left >= right) return;
 
-    stack[++top] = left;
-    stack[++top] = right;
+    struct Range {
+        int left, right;
+    };
 
-    #pragma omp parallel sections
-    {
-        #pragma omp section
-        {
-            while (top >= 0) 
-            {
-                right = stack[top--];
-                left = stack[top--];
+    std::vector<Range> stack;
+    stack.push_back({left, right});
 
-                int mid = left + (right - left) / 2;
+    while (!stack.empty()) {
+        Range range = stack.back();
+        stack.pop_back();
 
-                if (left < right) 
-                {
-                    stack[++top] = left;
-                    stack[++top] = mid;
-                    stack[++top] = mid + 1;
-                    stack[++top] = right;
-                }
-            }
-        }
-        #pragma omp section
-        {
-            while (top >= 0) 
-            {
-                right = stack[top--];
-                left = stack[top--];
-                int mid = left + (right - left) / 2;
+        left = range.left;
+        right = range.right;
 
-                merge(arr, left, mid, right, eval);
-            }
+        if (left < right) {
+            int mid = left + (right - left) / 2;
+
+            stack.push_back({left, mid});
+            stack.push_back({mid + 1, right});
+
+            #pragma omp task
+            mergeSort(arr, left, mid, eval);
+            #pragma omp task
+            mergeSort(arr, mid + 1, right, eval);
+            #pragma omp taskwait
+
+            merge(arr, left, mid, right, eval);
         }
     }
 }

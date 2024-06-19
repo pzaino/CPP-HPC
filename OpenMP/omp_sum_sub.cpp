@@ -1,13 +1,25 @@
+// Copyright 2023 Paolo Fabio Zaino
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <vector>
 #include <omp.h>
-
 #include "omp_sum_sub.hpp"
 
 // parallelSum function sums all the elements of a vector in parallel
-// vec: vector of doubles
 template <typename T>
-double parallelSum(const std::vector<T>& vec) {
-    double sum = 0.0;
+T parallelSum(const std::vector<T>& vec) {
+    T sum = 0;
 
     #pragma omp parallel for reduction(+:sum)
     for (size_t i = 0; i < vec.size(); ++i) {
@@ -21,11 +33,11 @@ double parallelSum(const std::vector<T>& vec) {
 template <typename T>
 void prefixSum(std::vector<T>& arr) {
     int n = arr.size();
-    std::vector<T> prefix_sum(n);  // Change std::vector<int> to std::vector<T>
+    std::vector<T> prefix_sum(n);
 
     #pragma omp parallel
     {
-        T sum = 0;  // Change int sum to T sum
+        T sum = 0;
 
         #pragma omp for
         for (int i = 0; i < n; ++i) {
@@ -37,30 +49,28 @@ void prefixSum(std::vector<T>& arr) {
     arr = prefix_sum;
 }
 
-/* Subtractions */
-
 // parallelSub function subtracts all the elements of a vector in parallel
 template <typename T>
-double parallelSub(const std::vector<T>& vec) {
-    double sub = 0.0;
+T parallelSub(const std::vector<T>& vec) {
+    T sub = 0;
 
-    #pragma omp parallel for reduction(-:sub)
+    #pragma omp parallel for reduction(+:sub)
     for (size_t i = 0; i < vec.size(); ++i) {
-        sub -= vec[i];
+        sub += vec[i];
     }
 
-    return sub;
+    return -sub;
 }
 
 // prefixSub function calculates the prefix subtraction of a vector in parallel
 template <typename T>
 void prefixSub(std::vector<T>& arr) {
     int n = arr.size();
-    std::vector<T> prefix_sub(n);  // Change std::vector<int> to std::vector<T>
+    std::vector<T> prefix_sub(n);
 
     #pragma omp parallel
     {
-        T sub = 0;  // Change int sub to T sub
+        T sub = 0;
 
         #pragma omp for
         for (int i = 0; i < n; ++i) {
@@ -78,17 +88,17 @@ template void prefixSum<float>(std::vector<float>&);
 template void prefixSum<double>(std::vector<double>&);
 template void prefixSum<long>(std::vector<long>&);
 
-template double parallelSum<int>(const std::vector<int>&);
-template double parallelSum<float>(const std::vector<float>&);
+template int parallelSum<int>(const std::vector<int>&);
+template float parallelSum<float>(const std::vector<float>&);
 template double parallelSum<double>(const std::vector<double>&);
-template double parallelSum<long>(const std::vector<long>&);
+template long parallelSum<long>(const std::vector<long>&);
 
 template void prefixSub<int>(std::vector<int>&);
 template void prefixSub<float>(std::vector<float>&);
 template void prefixSub<double>(std::vector<double>&);
 template void prefixSub<long>(std::vector<long>&);
 
-template double parallelSub<int>(const std::vector<int>&);
-template double parallelSub<float>(const std::vector<float>&);
+template int parallelSub<int>(const std::vector<int>&);
+template float parallelSub<float>(const std::vector<float>&);
 template double parallelSub<double>(const std::vector<double>&);
-template double parallelSub<long>(const std::vector<long>&);
+template long parallelSub<long>(const std::vector<long>&);

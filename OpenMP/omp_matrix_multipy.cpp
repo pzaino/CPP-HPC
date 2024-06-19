@@ -1,8 +1,20 @@
+// Copyright 2023 Paolo Fabio Zaino
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <vector>
 #include <omp.h>
-
-#include "omp_matrix_multiply.hpp"
+#include "omp_matrix_multipy.hpp"
 
 template <typename T>
 void matrixMultiply(const std::vector<std::vector<T>>& A, 
@@ -10,16 +22,26 @@ void matrixMultiply(const std::vector<std::vector<T>>& A,
                     std::vector<std::vector<T>>& C) {
 
     int n = A.size();
-    int m = B.size();
+    if (n == 0) return;
+    int m = A[0].size();
     int p = B[0].size();
+
+    // Ensure B has the correct dimensions
+    if (m != B.size()) {
+        throw std::invalid_argument("Matrix dimensions do not match for multiplication.");
+    }
+
+    // Resize C to be n x p and initialize with zeros
+    C.resize(n, std::vector<T>(p, 0));
 
     #pragma omp parallel for collapse(2)
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < p; ++j) {
-            C[i][j] = 0;
+            T sum = 0;
             for (int k = 0; k < m; ++k) {
-                C[i][j] += A[i][k] * B[k][j];
+                sum += A[i][k] * B[k][j];
             }
+            C[i][j] = sum;
         }
     }
 }

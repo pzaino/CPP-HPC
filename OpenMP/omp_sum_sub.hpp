@@ -10,7 +10,7 @@ void prefixSum(std::vector<T>& vec);
 
 // parallelSum computes the sum of all elements in the vector
 template <typename T>
-double parallelSum(const std::vector<T>& vec);
+T parallelSum(const std::vector<T>& vec);
 
 // prefixSub function calculates the prefix subtraction of a vector in parallel
 template <typename T>
@@ -18,6 +18,6 @@ void prefixSub(std::vector<T>& vec);
 
 // parallelSub computes the subtraction of all elements in the vector
 template <typename T>
-double parallelSub(const std::vector<T>& vec);
+T parallelSub(const std::vector<T>& vec);
 
 #endif // ZFP_SUM_SUB_HPP

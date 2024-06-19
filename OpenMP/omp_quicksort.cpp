@@ -1,104 +1,106 @@
+// Copyright 2023 Paolo Fabio Zaino
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-#include <functional>
 #include <vector>
 #include <omp.h>
+#include <functional>
 
 #include "omp_quicksort.hpp"
 
-#ifdef ZFP_RECURSIVE_FORM
-// Recursive form of quicksort with OpenMP and custom
-// evaluation function
+// Partition function for quicksort
 template <typename T>
-void quicksort(std::vector<T>& arr, int left, int right, 
-               std::function<bool(T, T)> eval)
+int partition(std::vector<T>& arr, int left, int right, 
+              std::function<bool(T, T)> eval) 
+{
+    T pivot = arr[right];
+    int partitionIndex = left;
+
+    for (int i = left; i < right; ++i) 
+    {
+        if (eval(arr[i], pivot)) 
+        {
+            std::swap(arr[i], arr[partitionIndex]);
+            ++partitionIndex;
+        }
+    }
+    std::swap(arr[partitionIndex], arr[right]);
+    return partitionIndex;
+}
+
+#ifdef ZFP_RECURSIVE_FORM
+// Recursive form of quicksort with OpenMP and custom evaluation function
+template <typename T>
+void quickSort(std::vector<T>& arr, int left, int right, 
+               std::function<bool(T, T)> eval) 
 {
     if (left < right) 
     {
-        int pivot = arr[right];
-        int partitionIndex = left;
-
-        #pragma omp parallel for
-        for (int i = left; i < right; ++i) 
-        {
-            if (eval(arr[i], pivot)) 
-            {
-                std::swap(arr[i], arr[partitionIndex]);
-                ++partitionIndex;
-            }
-        }
-        std::swap(arr[partitionIndex], arr[right]);
+        int partitionIndex = partition(arr, left, right, eval);
 
         #pragma omp parallel sections
         {
             #pragma omp section
             {
-                quicksort(arr, left, partitionIndex - 1, eval);
+                quickSort(arr, left, partitionIndex - 1, eval);
             }
             #pragma omp section
             {
-                quicksort(arr, partitionIndex + 1, right, eval);
+                quickSort(arr, partitionIndex + 1, right, eval);
             }
         }
     }
 }
 #else
-// Iterative form of quicksort with OpenMP and custom
-// evaluation function
+// Iterative form of quicksort with OpenMP and custom evaluation function
 template <typename T>
-void quicksort(std::vector<T>& arr, int left, int right, 
+void quickSort(std::vector<T>& arr, int left, int right, 
                std::function<bool(T, T)> eval) 
 {
-    std::vector<int> stack(right - left + 1);
-    int top = -1;
+    if (left >= right) return;
 
-    stack[++top] = left;
-    stack[++top] = right;
+    struct Range {
+        int left, right;
+    };
 
-    #pragma omp parallel sections
+    std::vector<Range> stack;
+    stack.push_back({left, right});
+
+    while (!stack.empty()) 
     {
-        #pragma omp section
+        Range range = stack.back();
+        stack.pop_back();
+
+        left = range.left;
+        right = range.right;
+
+        if (left < right) 
         {
-            while (top >= 0) 
-            {
-                right = stack[top--];
-                left = stack[top--];
+            int partitionIndex = partition(arr, left, right, eval);
 
-                int pivot = arr[right];
-                int partitionIndex = left;
-
-                for (int i = left; i < right; ++i) 
-                {
-                    if (eval(arr[i], pivot)) {
-                        std::swap(arr[i], arr[partitionIndex]);
-                        ++partitionIndex;
-                    }
-                }
-                std::swap(arr[partitionIndex], arr[right]);
-
-                if (partitionIndex - 1 > left) 
-                {
-                    stack[++top] = left;
-                    stack[++top] = partitionIndex - 1;
-                }
-
-                if (partitionIndex + 1 < right) 
-                {
-                    stack[++top] = partitionIndex + 1;
-                    stack[++top] = right;
-                }
-            }
+            stack.push_back({left, partitionIndex - 1});
+            stack.push_back({partitionIndex + 1, right});
         }
     }
 }
 #endif
 
 // Explicit template instantiation
-template void quicksort<int>(std::vector<int>&, int, int, 
+template void quickSort<int>(std::vector<int>&, int, int, 
                              std::function<bool(int, int)>);
-template void quicksort<float>(std::vector<float>&, int, int, 
+template void quickSort<float>(std::vector<float>&, int, int, 
                                std::function<bool(float, float)>);
-template void quicksort<double>(std::vector<double>&, int, int, 
+template void quickSort<double>(std::vector<double>&, int, int, 
                                 std::function<bool(double, double)>);
-template void quicksort<long>(std::vector<long>&, int, int,
-                                std::function<bool(long, long)>);   
-
+template void quickSort<long>(std::vector<long>&, int, int,
+                              std::function<bool(long, long)>);

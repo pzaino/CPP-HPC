@@ -10,7 +10,7 @@
 // implemented in a recursive or iterative form.
 // Define ZFP_RECURSIVE_FORM to use the recursive form.
 template <typename T>
-void quicksort(std::vector<T>& arr, int left, int right, 
+void quickSort(std::vector<T>& arr, int left, int right, 
                std::function<bool(T, T)> eval);
 
 #endif // ZFP_QUICKSORT_HPP
