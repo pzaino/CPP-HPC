@@ -56,7 +56,7 @@ make
 To run the tests, run the following command:
 
 ```bash
-./test/<type>_<name>_test
+./build/<type>_<name>_test
 ```
 
 Where type is the type of the implementation:
