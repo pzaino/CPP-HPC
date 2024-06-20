@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Add options to enable/disable different libraries
 option(ENABLE_OPENMP "Enable OpenMP support" ON)
-option(ENABLE_OPENCL "Enable OpenCL support" ON)
+option(ENABLE_OPENCL "Enable OpenCL support" OFF)
 option(ENABLE_CUDA "Enable CUDA support" OFF)
 option(ENABLE_SIMD "Enable SIMD support" OFF)
 option(ENABLE_TESTING "Enable Testing" OFF)
