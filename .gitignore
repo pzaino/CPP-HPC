@@ -39,6 +39,7 @@ sonar-project.properties
 build/
 dist/
 bin/
+compile_commands.json
 
 # IDEs
 .idea/

@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This repository contains libraries for high performance computing in C++ of my creation for my own projects.
+This repository contains libraries for high performance computing in C++ of my creation for my own projects, or just for fun, or learning.
 
 The reason I did this is to have a set of libraries that I can use in my projects that are optimized for performance, that I can trust and that are split into small libraries that I can use independently. To keep my project's binaries small, I don't want to include a whole library just to use a small part of it.
 
