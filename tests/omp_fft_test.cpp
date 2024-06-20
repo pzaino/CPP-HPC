@@ -1,7 +1,8 @@
 #include <gtest/gtest.h>
 #include <vector>
 #include <complex>
-#include "omp_fft.hpp"
+
+#include "fft.hpp"
 
 // Example test for fft function
 TEST(FFTTest, HandlesEmptyVector) {

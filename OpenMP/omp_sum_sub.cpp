@@ -28,7 +28,7 @@
 #include <vector>
 #include <omp.h>
 
-#include "omp_sum_sub.hpp"
+#include "sum_sub.hpp"
 
 // parallelSum function sums all the elements of a vector in parallel
 template <typename T>

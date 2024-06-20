@@ -16,7 +16,7 @@
 #include <omp.h>
 #include <functional>
 
-#include "omp_quicksort.hpp"
+#include "quicksort.hpp"
 
 // Partition function for quicksort
 template <typename T>

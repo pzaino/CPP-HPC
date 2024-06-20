@@ -16,7 +16,7 @@
 #include <omp.h>
 #include <functional>
 
-#include "omp_mergesort.hpp"
+#include "mergesort.hpp"
 
 template <typename T>
 void merge(std::vector<T>& arr, int left, int mid, int right, 

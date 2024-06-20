@@ -1,29 +1,21 @@
-__kernel void dijkstra(
-    __global const int* graph, 
-    __global int* dist, 
-    __global bool* sptSet, 
-    const int n) 
-{
-    int count = get_global_id(0);
-    
-    if (count < n - 1) {
-        int u = -1;
+__kernel void dijkstra(__global const int* graph, __global int* dist, __global int* sptSet, const int V) {  // Changed bool to int
+    int i = get_global_id(0);
+    if (i < V) {
         int min = INT_MAX;
+        int min_index;
 
-        for (int v = 0; v < n; v++) {
+        for (int v = 0; v < V; v++) {
             if (!sptSet[v] && dist[v] <= min) {
                 min = dist[v];
-                u = v;
+                min_index = v;
             }
         }
 
-        if (u != -1) {
-            sptSet[u] = true;
+        sptSet[min_index] = true;
 
-            for (int v = 0; v < n; v++) {
-                if (!sptSet[v] && graph[u * n + v] && dist[u] != INT_MAX && dist[u] + graph[u * n + v] < dist[v]) {
-                    dist[v] = dist[u] + graph[u * n + v];
-                }
+        for (int v = 0; v < V; v++) {
+            if (!sptSet[v] && graph[min_index * V + v] && dist[min_index] != INT_MAX && dist[min_index] + graph[min_index * V + v] < dist[v]) {
+                dist[v] = dist[min_index] + graph[min_index * V + v];
             }
         }
     }

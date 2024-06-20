@@ -17,7 +17,8 @@
 #include <limits>
 #include <omp.h>
 #include <random>
-#include "omp_k_means_clustering.hpp"
+
+#include "k_means_clustering.hpp"
 
 template <typename T>
 std::vector<int> kmeans(const std::vector<std::vector<T>>& data, int k, 

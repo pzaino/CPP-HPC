@@ -12,81 +12,85 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <CL/cl.hpp>
-#include <vector>
-#include <limits.h>
+#include <CL/opencl.hpp>
 #include <iostream>
+#include <vector>
+#include <limits>
 #include <fstream>
 #include <sstream>
 
-#include "ocl_dijkstra.hpp"
+#include "dijkstra.hpp"
 
-int minDistance(const std::vector<int>& dist, const std::vector<bool>& sptSet) 
-{
-    int min = INT_MAX, min_index = -1;
-
-    for (size_t v = 0; v < dist.size(); v++)
-        if (!sptSet[v] && dist[v] <= min) {
-            min = dist[v];
-            min_index = v;
-        }
-
-    return min_index;
+// Function to load the OpenCL kernel source code
+std::string loadKernelSource(const std::string &filePath) {
+    std::ifstream file(filePath);
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    return buffer.str();
 }
 
 template <typename T>
-std::vector<int> dijkstra(const std::vector<std::vector<T>>& graph, int src) 
-{
-    int n = graph.size();
-    if (n == 0) return {};
-
-    std::vector<int> dist(n, INT_MAX);
-    std::vector<bool> sptSet(n, false);
-
+std::vector<int> dijkstra(const std::vector<std::vector<T>>& graph, int src) {
+    int V = graph.size();
+    std::vector<int> dist(V, std::numeric_limits<int>::max());
+    std::vector<int> sptSet(V, 0);
     dist[src] = 0;
 
-    // Convert graph to 1D array for OpenCL
-    std::vector<int> graph_flat(n * n);
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < n; ++j) {
-            graph_flat[i * n + j] = graph[i][j];
-        }
+    // Get all platforms (drivers)
+    std::vector<cl::Platform> allPlatforms;
+    cl::Platform::get(&allPlatforms);
+    if (allPlatforms.empty()) {
+        std::cout << " No platforms found. Check OpenCL installation!\n";
+        exit(1);
+    }
+    cl::Platform platform = allPlatforms[0];
+
+    // Get default device of the default platform
+    std::vector<cl::Device> allDevices;
+    platform.getDevices(CL_DEVICE_TYPE_ALL, &allDevices);
+    if (allDevices.empty()) {
+        std::cout << " No devices found. Check OpenCL installation!\n";
+        exit(1);
+    }
+    cl::Device device = allDevices[0];
+
+    cl::Context context({device});
+
+    cl::Program::Sources sources;
+
+    // Kernel code
+    std::string kernelCode = loadKernelSource("dijkstra_kernel.cl");
+    sources.push_back({kernelCode.c_str(), kernelCode.length()});
+
+    cl::Program program(context, sources);
+    if (program.build({device}) != CL_SUCCESS) {
+        std::cout << " Error building: " << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device) << "\n";
+        exit(1);
     }
 
-    // Load kernel source
-    std::ifstream kernelFile("dijkstra.cl");
-    std::stringstream kernelSource;
-    kernelSource << kernelFile.rdbuf();
-    std::string src_str = kernelSource.str();
-    const char* source = src_str.c_str();
+    cl::Buffer bufferGraph(context, CL_MEM_READ_ONLY, sizeof(T) * V * V);
+    cl::Buffer bufferDist(context, CL_MEM_READ_WRITE, sizeof(int) * V);
+    cl::Buffer bufferSptSet(context, CL_MEM_READ_WRITE, sizeof(int) * V);
 
-    // Set up OpenCL
-    cl::Platform platform = cl::Platform::getDefault();
-    cl::Device device = platform.getDefaultDevice();
-    cl::Context context(device);
-    cl::Program program(context, source);
-    program.build();
+    cl::CommandQueue queue(context, device);
 
-    cl::Buffer bufferGraph(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(int) * graph_flat.size(), graph_flat.data());
-    cl::Buffer bufferDist(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(int) * dist.size(), dist.data());
-    cl::Buffer bufferSptSet(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(bool) * sptSet.size(), sptSet.data());
+    queue.enqueueWriteBuffer(bufferGraph, CL_TRUE, 0, sizeof(T) * V * V, &graph[0][0]);
+    queue.enqueueWriteBuffer(bufferDist, CL_TRUE, 0, sizeof(int) * V, dist.data());
+    queue.enqueueWriteBuffer(bufferSptSet, CL_TRUE, 0, sizeof(int) * V, sptSet.data());
 
     cl::Kernel kernel(program, "dijkstra");
     kernel.setArg(0, bufferGraph);
     kernel.setArg(1, bufferDist);
     kernel.setArg(2, bufferSptSet);
-    kernel.setArg(3, n);
+    kernel.setArg(3, V);
 
-    cl::CommandQueue queue(context, device);
-    
-    // Execute the kernel
-    for (int count = 0; count < n - 1; ++count) {
-        queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(n), cl::NullRange);
+    for (int count = 0; count < V - 1; count++) {
+        queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(V), cl::NullRange);
         queue.finish();
-    }
 
-    // Read the results
-    queue.enqueueReadBuffer(bufferDist, CL_TRUE, 0, sizeof(int) * dist.size(), dist.data());
+        queue.enqueueReadBuffer(bufferDist, CL_TRUE, 0, sizeof(int) * V, dist.data());
+        queue.enqueueReadBuffer(bufferSptSet, CL_TRUE, 0, sizeof(int) * V, sptSet.data());
+    }
 
     return dist;
 }
@@ -96,4 +100,3 @@ template std::vector<int> dijkstra<int>(const std::vector<std::vector<int>>&, in
 template std::vector<int> dijkstra<float>(const std::vector<std::vector<float>>&, int);
 template std::vector<int> dijkstra<double>(const std::vector<std::vector<double>>&, int);
 template std::vector<int> dijkstra<long>(const std::vector<std::vector<long>>&, int);
-template std::vector<int> dijkstra<unsigned int>(const std::vector<std::vector<unsigned int>>&, int);

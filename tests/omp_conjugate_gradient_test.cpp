@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <vector>
-#include "omp_conjugate_gradient.hpp"
+
+#include "conjugate_gradient.hpp"
 
 // Helper function to generate a positive definite matrix
 std::vector<std::vector<double>> generatePositiveDefiniteMatrix(int size) {

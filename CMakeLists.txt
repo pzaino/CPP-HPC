@@ -9,12 +9,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Add options to enable/disable different libraries
 option(ENABLE_OPENMP "Enable OpenMP support" ON)
-option(ENABLE_OPENCL "Enable OpenCL support" OFF)
+option(ENABLE_OPENCL "Enable OpenCL support" ON)
 option(ENABLE_CUDA "Enable CUDA support" OFF)
 option(ENABLE_SIMD "Enable SIMD support" OFF)
 option(ENABLE_TESTING "Enable Testing" OFF)
 
 # Include directories and link libraries based on the options
+include_directories(${CMAKE_SOURCE_DIR}/includes)
+
 if (ENABLE_OPENMP)
     find_package(OpenMP)
     if(OpenMP_FOUND)
@@ -33,9 +35,25 @@ if (ENABLE_OPENMP)
 endif()
 
 if (ENABLE_OPENCL)
-    find_package(OpenCL)
+    find_package(OpenCL REQUIRED)
     if(OpenCL_FOUND)
         include_directories(${OpenCL_INCLUDE_DIRS})
+
+        # Add architecture-specific paths for OpenCL headers
+        if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+            if (CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
+                # macOS ARM (Apple Silicon)
+                include_directories("/opt/homebrew/opt/opencl-clhpp-headers/include")
+            else()
+                # macOS x86_64
+                include_directories("/usr/local/opt/opencl-clhpp-headers/include")
+            endif()
+        endif()
+
+        # Define the target OpenCL version
+        add_definitions(-DCL_HPP_TARGET_OPENCL_VERSION=120)
+        add_definitions(-DCL_HPP_MINIMUM_OPENCL_VERSION=120)
+
         set(OpenCL_LIBS ${OpenCL_LIBRARIES})
     else()
         message(FATAL_ERROR "OpenCL requested but not found")
@@ -63,7 +81,7 @@ function(create_targets_from_directory dir)
     file(GLOB_RECURSE sources "${dir}/*.cpp")
     foreach(source ${sources})
         get_filename_component(target_name ${source} NAME_WE)
-        
+
         # Create shared library
         add_library(${target_name}_shared SHARED ${source})
 
@@ -164,6 +182,9 @@ if (ENABLE_TESTING)
         get_filename_component(lib_name ${library} NAME_WE)
         add_executable(${lib_name}_test ../tests/${lib_name}_test.cpp)
         target_link_libraries(${lib_name}_test PRIVATE ${library}_shared ${GTEST_BOTH_LIBRARIES} pthread)
+        if (ENABLE_OPENCL)
+            target_link_libraries(${lib_name}_test PRIVATE ${OpenCL_LIBS})
+        endif()
         add_test(NAME ${lib_name}_test COMMAND ${lib_name}_test)
     endfunction()
 
@@ -177,5 +198,9 @@ if (ENABLE_TESTING)
         add_test_for_library(omp_conjugate_gradient)
         add_test_for_library(omp_k_means_clustering)
         add_test_for_library(omp_montecarlo_simulation)
+    endif()
+
+    if (ENABLE_OPENCL)
+        add_test_for_library(ocl_dijkstra)
     endif()
 endif()

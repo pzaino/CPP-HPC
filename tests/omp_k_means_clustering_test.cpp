@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <vector>
-#include "omp_k_means_clustering.hpp"
+
+#include "k_means_clustering.hpp"
 
 TEST(KMeansTest, HandlesEmptyData) {
     std::vector<std::vector<float>> data;

@@ -1,7 +1,8 @@
 #include <gtest/gtest.h>
 #include <vector>
 #include <functional>
-#include "omp_mergesort.hpp"
+
+#include "mergesort.hpp"
 
 // Example comparator function for mergeSort
 bool compare(int a, int b) {

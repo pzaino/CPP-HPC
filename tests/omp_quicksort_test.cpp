@@ -1,7 +1,8 @@
 #include <gtest/gtest.h>
 #include <vector>
 #include <functional>
-#include "omp_quicksort.hpp"
+
+#include "quicksort.hpp"
 
 // Example comparator function for quicksort
 bool compare(int a, int b) {

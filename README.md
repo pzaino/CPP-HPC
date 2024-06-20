@@ -34,6 +34,32 @@ sudo cp libgtest* /usr/lib/
 brew install googletest
 ```
 
+#### Installing OpenMP on Ubuntu
+
+```bash
+sudo apt-get install libomp-dev
+```
+
+#### Installing OpenCL on Ubuntu
+
+```bash
+sudo apt-get install ocl-icd-opencl-dev
+```
+
+#### Installing OpenCL on MacOS
+
+```bash
+brew install opencl-clhpp-headers
+```
+
+#### Installing CUDA on Ubuntu
+
+```bash
+sudo apt-get install nvidia-cuda-toolkit
+```
+
+
+
 To build the project, run the following commands:
 
 ```bash

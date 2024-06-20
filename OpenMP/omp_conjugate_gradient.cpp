@@ -17,7 +17,7 @@
 #include <omp.h>
 #include <stdexcept>
 
-#include "omp_conjugate_gradient.hpp"
+#include "conjugate_gradient.hpp"
 
 template <typename T>
 void conjugateGradient(const std::vector<std::vector<T>>& A, 

@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <vector>
+#include <CL/opencl.hpp>
 
 #include "dijkstra.hpp"
 

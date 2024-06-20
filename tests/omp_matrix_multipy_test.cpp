@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <vector>
-#include "omp_matrix_multipy.hpp"
+
+#include "matrix_multipy.hpp"
 
 // Example test for matrix multiplication function
 TEST(MatrixMultiplyTest, HandlesEmptyMatrix) {

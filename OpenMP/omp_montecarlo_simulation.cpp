@@ -15,6 +15,8 @@
 #include <random>
 #include <omp.h>
 
+#include "montecarlo_simulation.hpp"
+
 template <typename T>
 T monteCarloPi(int num_samples) 
 {

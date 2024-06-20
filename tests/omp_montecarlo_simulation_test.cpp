@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
-#include "omp_montecarlo_simulation.hpp"  // Ensure this header includes the monteCarloPi function template
 
+#include "montecarlo_simulation.hpp" 
+ 
 TEST(MonteCarloPiTest, HandlesFloat) {
     float pi_estimate = monteCarloPi<float>(1000000);
     EXPECT_NEAR(pi_estimate, 3.1415, 0.01);  // Tolerance of 0.01

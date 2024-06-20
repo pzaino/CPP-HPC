@@ -14,7 +14,8 @@
 
 #include <vector>
 #include <omp.h>
-#include "omp_matrix_multipy.hpp"
+
+#include "matrix_multipy.hpp"
 
 template <typename T>
 void matrixMultiply(const std::vector<std::vector<T>>& A, 

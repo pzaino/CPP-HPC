@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <vector>
-#include "omp_sum_sub.hpp"
+
+#include "sum_sub.hpp"
 
 // Example test for sum and sub functions
 TEST(SumSubTest, HandlesEmptyVector) {

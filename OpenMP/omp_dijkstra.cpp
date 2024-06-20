@@ -16,7 +16,7 @@
 #include <limits.h>
 #include <omp.h>
 
-#include "omp_dijkstra.hpp"
+#include "dijkstra.hpp"
 
 int minDistance(const std::vector<int>& dist, const std::vector<bool>& sptSet) 
 {
