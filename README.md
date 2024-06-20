@@ -56,7 +56,16 @@ make
 To run the tests, run the following command:
 
 ```bash
-./test/cpp_hpc_test
+./test/<type>_<name>_test
 ```
+
+Where type is the type of the implementation:
+
+* omp  = OpenMP
+* ocl  = OpenCL
+* cuda = CUDA
+* simd = SIMD
+
+and name is the name of the library.
 
 Have fun!
